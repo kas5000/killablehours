@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Legal Time Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f4f2ee;
+    --surface: #ffffff;
+    --border: #d0ccc4;
+    --text: #1a1814;
+    --text-muted: #7a7670;
+    --active-bg: #d4edda;
+    --active-border: #28a745;
+    --active-text: #155724;
+    --inactive-bg: #f0efed;
+    --inactive-border: #c8c4bc;
+    --accent: #8b4513;
+    --total-bg: #111111;
+    --total-text: #ffffff;
+    --font-mono: 'IBM Plex Mono', monospace;
+    --font-sans: 'IBM Plex Sans', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 40px 0;
+  }
+
+  /* ── Header ── */
+  header {
+    background: var(--text);
+    color: #fff;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 3px solid var(--accent);
+  }
+
+  header h1 {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  header .subtitle {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    opacity: 0.5;
+    letter-spacing: 0.05em;
+    margin-top: 2px;
+  }
+
+  /* ── Date Navigation ── */
+  .date-bar {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+
+  .date-nav-btn {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-muted);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    font-family: var(--font-mono);
+  }
+  .date-nav-btn:hover { background: var(--bg); color: var(--text); border-color: var(--text); }
+
+  #date-display {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    flex: 1;
+  }
+
+  #date-input {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 5px 10px;
+    background: var(--bg);
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  .today-btn {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 5px 12px;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .today-btn:hover { background: var(--text); color: #fff; border-color: var(--text); }
+
+  /* ── Timer List ── */
+  .timer-list {
+    padding: 24px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  /* Column headers */
+  .column-headers {
+    display: grid;
+    grid-template-columns: 56px 110px 100px 1fr 1fr 44px;
+    gap: 10px;
+    padding: 0 14px 6px 14px;
+    align-items: center;
+  }
+  .col-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+  }
+
+  /* ── Single Timer Row ── */
+  .timer-row {
+    display: grid;
+    grid-template-columns: 56px 110px 100px 1fr 1fr 44px;
+    gap: 10px;
+    padding: 14px;
+    border-radius: 5px;
+    border: 1px solid var(--inactive-border);
+    background: var(--inactive-bg);
+    align-items: center;
+    transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
+  }
+
+  .timer-row.running {
+    background: var(--active-bg);
+    border-color: var(--active-border);
+    box-shadow: 0 0 0 2px rgba(40,167,69,0.15), 0 2px 12px rgba(40,167,69,0.1);
+  }
+
+  /* Toggle button */
+  .toggle-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 4px;
+    border: 1.5px solid var(--inactive-border);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 1.1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .timer-row.running .toggle-btn {
+    border-color: var(--active-border);
+    background: var(--active-border);
+    color: #fff;
+  }
+  .toggle-btn:hover { transform: scale(1.05); }
+
+  /* Time display */
+  .time-display {
+    font-family: var(--font-mono);
+    font-size: 1.35rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    color: var(--text);
+    min-width: 90px;
+    user-select: none;
+  }
+  .time-display .hrs-label {
+    font-size: 0.65rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-left: 2px;
+    letter-spacing: 0.06em;
+  }
+
+  /* Billable units */
+  .billable-display {
+    font-family: var(--font-mono);
+    font-size: 0.88rem;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .billable-display .val {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text);
+    display: block;
+  }
+
+  /* Text inputs */
+  .timer-input {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 10px;
+    background: var(--surface);
+    color: var(--text);
+    width: 100%;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    resize: none;
+    min-height: 44px;
+  }
+  .timer-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px rgba(139,69,19,0.12);
+  }
+  .timer-input::placeholder { color: var(--text-muted); font-style: italic; }
+
+  .timer-row.running .timer-input {
+    border-color: rgba(40,167,69,0.4);
+  }
+  .timer-row.running .timer-input:focus {
+    border-color: var(--active-border);
+    box-shadow: 0 0 0 2px rgba(40,167,69,0.15);
+  }
+
+  /* Delete button */
+  .delete-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    background: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+    justify-self: center;
+  }
+  .delete-btn:hover { background: #fee2e2; color: #dc2626; border-color: #fca5a5; }
+
+  /* ── Add Timer Button ── */
+  .add-timer-btn {
+    margin: 4px 32px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: 1.5px dashed var(--border);
+    border-radius: 5px;
+    background: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    width: calc(100% - 64px);
+    transition: all 0.15s;
+  }
+  .add-timer-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(139,69,19,0.03);
+  }
+
+  /* ── Subtotal Bar ── */
+  .subtotal-bar {
+    margin: 28px 32px 0;
+    background: var(--total-bg);
+    color: var(--total-text);
+    border-radius: 5px;
+    padding: 18px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .subtotal-label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
+
+  .subtotal-value {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+  }
+
+  .subtotal-hrs {
+    font-family: var(--font-mono);
+    font-size: 2.4rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  .subtotal-unit {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    opacity: 0.5;
+    letter-spacing: 0.08em;
+  }
+
+  .subtotal-entries {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    opacity: 0.4;
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Running indicator pulse ── */
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+  .running-dot {
+    width: 8px; height: 8px;
+    background: var(--active-border);
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 6px;
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>⚖ Legal Time Tracker</h1>
+    <div class="subtitle">Billable Hours · 0.1 hr Increments</div>
+  </div>
+  <div id="live-clock" style="font-family:var(--font-mono);font-size:0.85rem;opacity:0.6;letter-spacing:0.06em;"></div>
+</header>
+
+<div class="date-bar">
+  <button class="date-nav-btn" id="prev-day" title="Previous day">&#8592;</button>
+  <div id="date-display"></div>
+  <button class="date-nav-btn" id="next-day" title="Next day">&#8594;</button>
+  <input type="date" id="date-input" />
+  <button class="today-btn" id="today-btn">Today</button>
+</div>
+
+<div class="column-headers">
+  <span class="col-label">Start</span>
+  <span class="col-label">Elapsed</span>
+  <span class="col-label">Billable</span>
+  <span class="col-label">Task Description</span>
+  <span class="col-label">Billing Description</span>
+  <span class="col-label"></span>
+</div>
+
+<div class="timer-list" id="timer-list"></div>
+
+<button class="add-timer-btn" id="add-timer-btn">
+  <span style="font-size:1.1rem">+</span> Add Timer
+</button>
+
+<div class="subtotal-bar">
+  <div>
+    <div class="subtotal-label">Daily Subtotal</div>
+    <div class="subtotal-entries" id="subtotal-entries">0 entries</div>
+  </div>
+  <div class="subtotal-value">
+    <span class="subtotal-hrs" id="subtotal-value">0.0</span>
+    <span class="subtotal-unit">hours</span>
+  </div>
+</div>
+
+<script>
+// ── Storage helpers ──────────────────────────────────────────
+const STORE_KEY = 'legalTimerData_v2';
+
+function loadAllData() {
+  try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; }
+  catch { return {}; }
+}
+
+function saveAllData(data) {
+  localStorage.setItem(STORE_KEY, JSON.stringify(data));
+}
+
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+
+// ── State ────────────────────────────────────────────────────
+let currentDate = todayStr();
+let allData = loadAllData();
+let tickInterval = null;
+let runningId = null; // which timer is currently ticking
+
+// Per-day data shape: { timers: [ { id, elapsed, taskDesc, billDesc, runningStart } ] }
+
+function getDayData(dateStr) {
+  if (!allData[dateStr]) {
+    allData[dateStr] = { timers: [] };
+  }
+  return allData[dateStr];
+}
+
+function save() {
+  saveAllData(allData);
+}
+
+function nextId() {
+  return 'T' + Date.now() + Math.random().toString(36).slice(2,6);
+}
+
+// ── Billing math ─────────────────────────────────────────────
+function secondsToBillable(secs) {
+  // Round UP to next 0.1 hr (6 min = 360 sec)
+  if (secs <= 0) return 0;
+  return Math.ceil(secs / 360) / 10;
+}
+
+function secondsToDisplay(secs) {
+  const h = Math.floor(secs / 3600);
+  const m = Math.floor((secs % 3600) / 60);
+  const s = secs % 60;
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// ── Render ───────────────────────────────────────────────────
+function render() {
+  const day = getDayData(currentDate);
+  const list = document.getElementById('timer-list');
+
+  // Rebuild DOM — but preserve focus/cursor where possible
+  const focusedId = document.activeElement && document.activeElement.dataset.timerId;
+  const focusedField = document.activeElement && document.activeElement.dataset.field;
+  const focusedPos = document.activeElement && document.activeElement.selectionStart;
+
+  list.innerHTML = '';
+
+  day.timers.forEach(t => {
+    const isRunning = (runningId === t.id);
+    const elapsed = isRunning
+      ? t.elapsed + Math.floor((Date.now() - t.runningStart) / 1000)
+      : t.elapsed;
+    const billable = secondsToBillable(elapsed);
+
+    const row = document.createElement('div');
+    row.className = 'timer-row' + (isRunning ? ' running' : '');
+    row.dataset.id = t.id;
+
+    row.innerHTML = `
+      <button class="toggle-btn" data-id="${t.id}" title="${isRunning ? 'Stop' : 'Start'}">
+        ${isRunning ? '<span class="running-dot"></span>⏹' : '▶'}
+      </button>
+      <div class="time-display">
+        ${secondsToDisplay(elapsed)}
+      </div>
+      <div class="billable-display">
+        <span class="val">${billable.toFixed(1)}</span>
+        hrs
+      </div>
+      <textarea
+        class="timer-input"
+        placeholder="Task description…"
+        data-timer-id="${t.id}"
+        data-field="taskDesc"
+      >${escHtml(t.taskDesc || '')}</textarea>
+      <textarea
+        class="timer-input"
+        placeholder="Billing description…"
+        data-timer-id="${t.id}"
+        data-field="billDesc"
+      >${escHtml(t.billDesc || '')}</textarea>
+      <button class="delete-btn" data-id="${t.id}" title="Delete timer">✕</button>
+    `;
+    list.appendChild(row);
+  });
+
+  // Restore focus
+  if (focusedId && focusedField) {
+    const el = list.querySelector(`[data-timer-id="${focusedId}"][data-field="${focusedField}"]`);
+    if (el) {
+      el.focus();
+      try { el.setSelectionRange(focusedPos, focusedPos); } catch {}
+    }
+  }
+
+  updateSubtotal();
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function updateSubtotal() {
+  const day = getDayData(currentDate);
+  let total = 0;
+  day.timers.forEach(t => {
+    const elapsed = (runningId === t.id)
+      ? t.elapsed + Math.floor((Date.now() - t.runningStart) / 1000)
+      : t.elapsed;
+    total += secondsToBillable(elapsed);
+  });
+  // Sum of individual .1-rounded values
+  // Actually recalculate as sum for accuracy:
+  let totalSecs = 0;
+  day.timers.forEach(t => {
+    totalSecs += (runningId === t.id)
+      ? t.elapsed + Math.floor((Date.now() - t.runningStart) / 1000)
+      : t.elapsed;
+  });
+
+  // Show individual billables summed (each rounded up), not one big round
+  document.getElementById('subtotal-value').textContent = total.toFixed(1);
+  const n = day.timers.length;
+  document.getElementById('subtotal-entries').textContent = `${n} entr${n===1?'y':'ies'}`;
+}
+
+// ── Timer controls ───────────────────────────────────────────
+function startTimer(id) {
+  stopRunning(); // stop any currently running timer first
+  const day = getDayData(currentDate);
+  const t = day.timers.find(x => x.id === id);
+  if (!t) return;
+  t.runningStart = Date.now();
+  runningId = id;
+  save();
+  startTick();
+  render();
+}
+
+function stopRunning() {
+  if (!runningId) return;
+  const day = getDayData(currentDate);
+  const t = day.timers.find(x => x.id === runningId);
+  if (t && t.runningStart) {
+    t.elapsed += Math.floor((Date.now() - t.runningStart) / 1000);
+    t.runningStart = null;
+  }
+  runningId = null;
+  stopTick();
+  save();
+}
+
+function toggleTimer(id) {
+  if (runningId === id) {
+    stopRunning();
+    render();
+  } else {
+    startTimer(id);
+  }
+}
+
+function addTimer() {
+  const day = getDayData(currentDate);
+  day.timers.push({ id: nextId(), elapsed: 0, taskDesc: '', billDesc: '', runningStart: null });
+  save();
+  render();
+}
+
+function deleteTimer(id) {
+  if (runningId === id) stopRunning();
+  const day = getDayData(currentDate);
+  day.timers = day.timers.filter(t => t.id !== id);
+  save();
+  render();
+}
+
+// ── Tick ─────────────────────────────────────────────────────
+function startTick() {
+  if (tickInterval) return;
+  tickInterval = setInterval(() => {
+    updateRunningDisplay();
+  }, 500);
+}
+
+function stopTick() {
+  if (tickInterval) { clearInterval(tickInterval); tickInterval = null; }
+}
+
+function updateRunningDisplay() {
+  if (!runningId) return;
+  const day = getDayData(currentDate);
+  const t = day.timers.find(x => x.id === runningId);
+  if (!t) return;
+  const elapsed = t.elapsed + Math.floor((Date.now() - t.runningStart) / 1000);
+
+  const row = document.querySelector(`.timer-row[data-id="${runningId}"]`);
+  if (row) {
+    row.querySelector('.time-display').innerHTML =
+      secondsToDisplay(elapsed);
+    row.querySelector('.billable-display .val').textContent =
+      secondsToBillable(elapsed).toFixed(1);
+  }
+  updateSubtotal();
+}
+
+// ── Date navigation ──────────────────────────────────────────
+function setDate(dateStr) {
+  stopRunning();
+  currentDate = dateStr;
+  updateDateUI();
+  render();
+}
+
+function updateDateUI() {
+  const [y, m, d] = currentDate.split('-').map(Number);
+  const date = new Date(y, m-1, d);
+  const opts = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+  document.getElementById('date-display').textContent = date.toLocaleDateString('en-US', opts);
+  document.getElementById('date-input').value = currentDate;
+}
+
+function shiftDate(days) {
+  const [y, m, d] = currentDate.split('-').map(Number);
+  const date = new Date(y, m-1, d + days);
+  const str = `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+  setDate(str);
+}
+
+// ── Event delegation ─────────────────────────────────────────
+document.getElementById('timer-list').addEventListener('click', e => {
+  const toggleBtn = e.target.closest('.toggle-btn');
+  if (toggleBtn) { toggleTimer(toggleBtn.dataset.id); return; }
+  const deleteBtn = e.target.closest('.delete-btn');
+  if (deleteBtn) { deleteTimer(deleteBtn.dataset.id); return; }
+});
+
+document.getElementById('timer-list').addEventListener('input', e => {
+  const el = e.target;
+  if (!el.dataset.timerId) return;
+  const day = getDayData(currentDate);
+  const t = day.timers.find(x => x.id === el.dataset.timerId);
+  if (!t) return;
+  t[el.dataset.field] = el.value;
+  save();
+});
+
+document.getElementById('add-timer-btn').addEventListener('click', addTimer);
+document.getElementById('prev-day').addEventListener('click', () => shiftDate(-1));
+document.getElementById('next-day').addEventListener('click', () => shiftDate(1));
+document.getElementById('today-btn').addEventListener('click', () => setDate(todayStr()));
+document.getElementById('date-input').addEventListener('change', e => setDate(e.target.value));
+
+// ── Live clock ───────────────────────────────────────────────
+function updateClock() {
+  const now = new Date();
+  document.getElementById('live-clock').textContent =
+    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ── Init ─────────────────────────────────────────────────────
+updateDateUI();
+render();
+
+// If there's a timer left running from before (page refresh), resume it
+(function resumeRunning() {
+  const day = getDayData(currentDate);
+  const running = day.timers.find(t => t.runningStart);
+  if (running) {
+    runningId = running.id;
+    startTick();
+    render();
+  }
+})();
+</script>
+</body>
+</html>

@@ -17,7 +17,7 @@
     --active-text: #155724;
     --inactive-bg: #f0efed;
     --inactive-border: #c8c4bc;
-    --accent: #4188fa;
+    --accent: #8b4513;
     --total-bg: #111111;
     --total-text: #ffffff;
     --font-mono: 'IBM Plex Mono', monospace;
@@ -962,17 +962,42 @@ function updateSubtotal() {
   });
 
   // Show individual billables summed (each rounded up), not one big round
-  document.getElementById('subtotal-value').textContent = total.toFixed(1);
+  // Cap display at 24.0 — never show 24.1 due to rounding
+  document.getElementById('subtotal-value').textContent = Math.min(total, 24.0).toFixed(1);
   const n = day.timers.length;
   document.getElementById('subtotal-entries').textContent = `${n} entr${n===1?'y':'ies'}`;
 }
 
 // ── Timer controls ───────────────────────────────────────────
+
+// ── 24-hour daily cap ─────────────────────────────────────────
+const MAX_DAY_SECONDS = 86400; // 24 hrs
+
+function dayTotalExcluding(day, excludeId) {
+  return day.timers.reduce((sum, t) => {
+    if (t.id === excludeId) return sum;
+    const e = (runningId === t.id && t.runningStart)
+      ? t.elapsed + Math.floor((Date.now() - t.runningStart) / 1000)
+      : t.elapsed;
+    return sum + e;
+  }, 0);
+}
+
+function dayTotal(day) {
+  return dayTotalExcluding(day, null);
+}
+
 function startTimer(id) {
   stopRunning(); // stop any currently running timer first
   const day = getDayData(currentDate);
   const t = day.timers.find(x => x.id === id);
   if (!t) return;
+  // Check if day is already at 24h cap
+  if (dayTotalExcluding(day, id) >= MAX_DAY_SECONDS) {
+    showToast('✗ 24-hour daily limit reached', 'error');
+    render();
+    return;
+  }
   t.runningStart = Date.now();
   runningId = id;
   save();
@@ -985,7 +1010,10 @@ function stopRunning() {
   const day = getDayData(currentDate);
   const t = day.timers.find(x => x.id === runningId);
   if (t && t.runningStart) {
-    t.elapsed += Math.floor((Date.now() - t.runningStart) / 1000);
+    const added = Math.floor((Date.now() - t.runningStart) / 1000);
+    const otherTotal = dayTotalExcluding(day, t.id);
+    const allowed = Math.max(0, MAX_DAY_SECONDS - otherTotal);
+    t.elapsed = Math.min(t.elapsed + added, allowed);
     t.runningStart = null;
   }
   runningId = null;
@@ -1034,7 +1062,16 @@ function updateRunningDisplay() {
   const day = getDayData(currentDate);
   const t = day.timers.find(x => x.id === runningId);
   if (!t) return;
-  const elapsed = t.elapsed + Math.floor((Date.now() - t.runningStart) / 1000);
+  const otherTotal = dayTotalExcluding(day, runningId);
+  const rawElapsed = t.elapsed + Math.floor((Date.now() - t.runningStart) / 1000);
+  // Auto-stop if hitting 24h cap
+  if (otherTotal + rawElapsed >= MAX_DAY_SECONDS) {
+    stopRunning();
+    render();
+    showToast('⏱ Timer stopped — 24-hour daily limit reached', 'error');
+    return;
+  }
+  const elapsed = rawElapsed;
 
   const row = document.querySelector(`.timer-row[data-id="${runningId}"]`);
   if (row) {
@@ -1304,11 +1341,17 @@ function applyTimeEdit(newSeconds) {
   const day = getDayData(currentDate);
   const t = day.timers.find(x => x.id === editingTimerId);
   if (!t) return;
-  t.elapsed = Math.max(0, newSeconds);
+  const otherTotal = dayTotalExcluding(day, editingTimerId);
+  const allowed = Math.max(0, MAX_DAY_SECONDS - otherTotal);
+  const capped = Math.min(Math.max(0, newSeconds), allowed);
+  if (capped < newSeconds) {
+    showToast(`✗ Capped at ${(allowed/3600).toFixed(1)} hrs — daily limit reached`, 'error');
+  }
+  t.elapsed = capped;
   t.runningStart = null;
   save();
   render();
-  showToast('✓ Time updated', 'success');
+  if (capped === newSeconds) showToast('✓ Time updated', 'success');
 }
 
 // Open popover when edit button clicked

@@ -350,6 +350,194 @@
     animation: pulse 1.4s ease-in-out infinite;
   }
 
+  /* ── Export / Import toolbar ── */
+  .data-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 32px;
+    background: #f9f8f5;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toolbar-label {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-right: 4px;
+  }
+
+  .toolbar-btn {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    padding: 6px 14px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s;
+  }
+  .toolbar-btn:hover { background: var(--text); color: #fff; border-color: var(--text); }
+  .toolbar-btn.import-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .toolbar-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 4px;
+  }
+
+  /* ── Toast notification ── */
+  #toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--text);
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.04em;
+    padding: 10px 20px;
+    border-radius: 4px;
+    border-left: 3px solid var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 9999;
+    white-space: nowrap;
+  }
+  #toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  #toast.success { border-left-color: var(--active-border); }
+  #toast.error { border-left-color: #dc2626; }
+
+  /* ── Import modal overlay ── */
+  #import-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  #import-modal.open { display: flex; }
+
+  .modal-box {
+    background: var(--surface);
+    border-radius: 6px;
+    padding: 28px 32px;
+    width: 460px;
+    max-width: 92vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    border-top: 3px solid var(--accent);
+  }
+  .modal-title {
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .modal-sub {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 5px;
+    padding: 32px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 16px;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: rgba(139,69,19,0.04);
+  }
+  .drop-zone input[type=file] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
+  }
+  .drop-zone-icon { font-size: 2rem; margin-bottom: 8px; }
+  .drop-zone-text {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+  .drop-zone-text strong { color: var(--accent); }
+
+  .import-options {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .import-option {
+    flex: 1;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    cursor: pointer;
+    text-align: center;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    transition: all 0.15s;
+    background: none;
+  }
+  .import-option:hover { border-color: var(--accent); background: rgba(139,69,19,0.04); }
+  .import-option.selected { border-color: var(--accent); background: rgba(139,69,19,0.08); color: var(--accent); font-weight: 600; }
+  .import-option-label { display: block; font-size: 1.2rem; margin-bottom: 4px; }
+
+  .modal-actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+  }
+  .modal-cancel {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    padding: 8px 18px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .modal-cancel:hover { background: var(--bg); }
+  .modal-confirm {
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    padding: 8px 18px;
+    border: 1px solid var(--accent);
+    border-radius: 3px;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.15s;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+  .modal-confirm.ready { opacity: 1; pointer-events: auto; }
+  .modal-confirm:hover { background: #6b3410; }
+
   /* ── Scrollbar ── */
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
@@ -360,7 +548,7 @@
 
 <header>
   <div>
-    <h1>⚖ Killable Hours App</h1>
+    <h1>⚖ Killable Hours</h1>
     <div class="subtitle">Billable Hours · 0.1 hr Increments</div>
   </div>
   <div id="live-clock" style="font-family:var(--font-mono);font-size:0.85rem;opacity:0.6;letter-spacing:0.06em;"></div>
@@ -373,6 +561,48 @@
   <input type="date" id="date-input" />
   <button class="today-btn" id="today-btn">Today</button>
 </div>
+
+<!-- Export / Import toolbar -->
+<div class="data-toolbar">
+  <span class="toolbar-label">Data</span>
+  <button class="toolbar-btn" id="export-all-btn">⬇ Export All Data</button>
+  <button class="toolbar-btn" id="export-day-btn">⬇ Export This Day</button>
+  <div class="toolbar-sep"></div>
+  <button class="toolbar-btn import-btn" id="import-btn">⬆ Import / Restore</button>
+</div>
+
+<!-- Import modal -->
+<div id="import-modal">
+  <div class="modal-box">
+    <div class="modal-title">Import Timer Data</div>
+    <div class="modal-sub">Select a <code>.json</code> backup file exported from this app. Choose how to handle existing data below.</div>
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="import-file-input" accept=".json,application/json" />
+      <div class="drop-zone-icon">📂</div>
+      <div class="drop-zone-text">Drop file here or <strong>click to browse</strong></div>
+      <div id="drop-zone-filename" style="margin-top:8px;font-family:var(--font-mono);font-size:0.75rem;color:var(--accent);"></div>
+    </div>
+    <div class="import-options">
+      <button class="import-option selected" data-mode="merge" id="opt-merge">
+        <span class="import-option-label">🔀</span>
+        Merge
+        <span style="display:block;font-size:0.65rem;color:var(--text-muted);font-weight:400;margin-top:2px;">Add imported days; keep existing data</span>
+      </button>
+      <button class="import-option" data-mode="replace" id="opt-replace">
+        <span class="import-option-label">♻️</span>
+        Replace All
+        <span style="display:block;font-size:0.65rem;color:var(--text-muted);font-weight:400;margin-top:2px;">Overwrite everything with imported file</span>
+      </button>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="modal-cancel">Cancel</button>
+      <button class="modal-confirm" id="modal-confirm">Import Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div id="toast"></div>
 
 <div class="column-headers">
   <span class="col-label">Start</span>
@@ -671,6 +901,123 @@ document.getElementById('prev-day').addEventListener('click', () => shiftDate(-1
 document.getElementById('next-day').addEventListener('click', () => shiftDate(1));
 document.getElementById('today-btn').addEventListener('click', () => setDate(todayStr()));
 document.getElementById('date-input').addEventListener('change', e => setDate(e.target.value));
+
+// ── Export ───────────────────────────────────────────────────
+function downloadJSON(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  URL.revokeObjectURL(url);
+}
+
+document.getElementById('export-all-btn').addEventListener('click', () => {
+  stopRunning();
+  const ts = new Date().toISOString().slice(0,10);
+  downloadJSON({ _meta: { exportedAt: new Date().toISOString(), version: 2, type: 'all' }, data: allData },
+    `legal-timers-all-${ts}.json`);
+  showToast('✓ All data exported', 'success');
+});
+
+document.getElementById('export-day-btn').addEventListener('click', () => {
+  stopRunning();
+  const day = getDayData(currentDate);
+  downloadJSON({ _meta: { exportedAt: new Date().toISOString(), version: 2, type: 'day', date: currentDate }, data: { [currentDate]: day } },
+    `legal-timers-${currentDate}.json`);
+  showToast('✓ ' + currentDate + ' exported', 'success');
+});
+
+// ── Import modal ─────────────────────────────────────────────
+let pendingImportData = null;
+let importMode = 'merge';
+
+document.getElementById('import-btn').addEventListener('click', openImportModal);
+document.getElementById('modal-cancel').addEventListener('click', closeImportModal);
+document.getElementById('import-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('import-modal')) closeImportModal();
+});
+
+document.querySelectorAll('.import-option').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.import-option').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    importMode = btn.dataset.mode;
+  });
+});
+
+document.getElementById('import-file-input').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (file) readImportFile(file);
+});
+
+const dropZone = document.getElementById('drop-zone');
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) readImportFile(file);
+});
+
+function readImportFile(file) {
+  const reader = new FileReader();
+  reader.onload = ev => {
+    try {
+      const parsed = JSON.parse(ev.target.result);
+      if (!parsed.data || !parsed._meta) throw new Error('bad format');
+      pendingImportData = parsed;
+      document.getElementById('drop-zone-filename').textContent = '✓ ' + file.name;
+      document.getElementById('drop-zone-filename').style.color = 'var(--active-border)';
+      document.querySelector('.drop-zone-icon').textContent = '✅';
+      document.getElementById('modal-confirm').classList.add('ready');
+    } catch {
+      document.getElementById('drop-zone-filename').textContent = '✗ Invalid file — use a .json export from this app';
+      document.getElementById('drop-zone-filename').style.color = '#dc2626';
+      pendingImportData = null;
+      document.getElementById('modal-confirm').classList.remove('ready');
+    }
+  };
+  reader.readAsText(file);
+}
+
+document.getElementById('modal-confirm').addEventListener('click', () => {
+  if (!pendingImportData) return;
+  stopRunning();
+  if (importMode === 'replace') {
+    allData = pendingImportData.data;
+  } else {
+    Object.assign(allData, pendingImportData.data);
+  }
+  saveAllData(allData);
+  closeImportModal();
+  updateDateUI(); render();
+  const n = Object.keys(pendingImportData.data).length;
+  showToast('✓ Imported ' + n + ' day' + (n===1?'':'s') + ' (' + importMode + ')', 'success');
+  pendingImportData = null;
+});
+
+function openImportModal() {
+  pendingImportData = null;
+  document.getElementById('import-file-input').value = '';
+  document.getElementById('drop-zone-filename').textContent = '';
+  document.getElementById('drop-zone-filename').style.color = 'var(--accent)';
+  document.querySelector('.drop-zone-icon').textContent = '📂';
+  document.getElementById('modal-confirm').classList.remove('ready');
+  document.getElementById('import-modal').classList.add('open');
+}
+function closeImportModal() {
+  document.getElementById('import-modal').classList.remove('open');
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+let toastTimer = null;
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show ' + (type || '');
+  if (toastTimer) clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ''; }, 2800);
+}
 
 // ── Live clock ───────────────────────────────────────────────
 function updateClock() {

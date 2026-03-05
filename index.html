@@ -157,7 +157,7 @@
     border-radius: 5px;
     border: 1px solid var(--inactive-border);
     background: var(--inactive-bg);
-    align-items: center;
+    align-items: start;
     transition: background 0.4s, border-color 0.4s, box-shadow 0.25s;
   }
 
@@ -679,9 +679,6 @@
   /* ── AI Description cell ── */
   .ai-desc-cell {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
   }
   .ai-desc-output {
     font-style: italic;
@@ -694,17 +691,29 @@
     box-shadow: 0 0 0 2px rgba(74,127,193,0.15) !important;
   }
   .ai-status {
+    position: absolute;
+    bottom: -14px;
+    left: 2px;
     font-family: var(--font-mono);
     font-size: 0.6rem;
     letter-spacing: 0.06em;
     color: var(--text-muted);
-    height: 12px;
-    padding-left: 2px;
+    white-space: nowrap;
     transition: opacity 0.2s;
   }
   .ai-status.thinking { color: var(--accent); }
   .ai-status.done { color: var(--active-border); }
   .ai-status.error { color: #dc2626; }
+
+
+  /* Re-center non-textarea cells after switching row to align-items: start */
+  .timer-row .toggle-btn,
+  .timer-row .time-display,
+  .timer-row .edit-time-btn,
+  .timer-row .billable-display,
+  .timer-row .delete-btn {
+    align-self: center;
+  }
 
 </style>
 </head>

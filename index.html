@@ -17,7 +17,7 @@
     --active-text: #155724;
     --inactive-bg: #f0efed;
     --inactive-border: #c8c4bc;
-    --accent: #8b4513;
+    --accent: #1a56b0;
     --total-bg: #111111;
     --total-text: #ffffff;
     --font-mono: 'IBM Plex Mono', monospace;
@@ -135,7 +135,7 @@
   /* Column headers */
   .column-headers {
     display: grid;
-    grid-template-columns: 56px 120px 32px 90px 1fr 1fr 44px;
+    grid-template-columns: 56px 120px 32px 90px 1fr 1fr 1fr 44px;
     gap: 10px;
     padding: 0 14px 6px 14px;
     align-items: center;
@@ -151,7 +151,7 @@
   /* ── Single Timer Row ── */
   .timer-row {
     display: grid;
-    grid-template-columns: 56px 120px 32px 90px 1fr 1fr 44px;
+    grid-template-columns: 56px 120px 32px 90px 1fr 1fr 1fr 44px;
     gap: 10px;
     padding: 14px;
     border-radius: 5px;
@@ -236,7 +236,7 @@
   .timer-input:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(139,69,19,0.12);
+    box-shadow: 0 0 0 2px rgba(26,86,176,0.12);
   }
   .timer-input::placeholder { color: var(--text-muted); font-style: italic; }
 
@@ -286,7 +286,7 @@
   .add-timer-btn:hover {
     border-color: var(--accent);
     color: var(--accent);
-    background: rgba(139,69,19,0.03);
+    background: rgba(26,86,176,0.03);
   }
 
   /* ── Subtotal Bar ── */
@@ -469,7 +469,7 @@
   }
   .drop-zone:hover, .drop-zone.dragover {
     border-color: var(--accent);
-    background: rgba(139,69,19,0.04);
+    background: rgba(26,86,176,0.04);
   }
   .drop-zone input[type=file] {
     position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%;
@@ -501,8 +501,8 @@
     transition: all 0.15s;
     background: none;
   }
-  .import-option:hover { border-color: var(--accent); background: rgba(139,69,19,0.04); }
-  .import-option.selected { border-color: var(--accent); background: rgba(139,69,19,0.08); color: var(--accent); font-weight: 600; }
+  .import-option:hover { border-color: var(--accent); background: rgba(26,86,176,0.04); }
+  .import-option.selected { border-color: var(--accent); background: rgba(26,86,176,0.08); color: var(--accent); font-weight: 600; }
   .import-option-label { display: block; font-size: 1.2rem; margin-bottom: 4px; }
 
   .modal-actions {
@@ -536,7 +536,7 @@
     pointer-events: none;
   }
   .modal-confirm.ready { opacity: 1; pointer-events: auto; }
-  .modal-confirm:hover { background: #6b3410; }
+  .modal-confirm:hover { background: #1244a0; }
 
   /* ── Scrollbar ── */
   ::-webkit-scrollbar { width: 6px; }
@@ -617,7 +617,7 @@
     color: var(--text);
     text-align: center;
   }
-  .set-hours-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(139,69,19,0.1); }
+  .set-hours-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 2px rgba(26,86,176,0.1); }
   .set-hours-btn {
     flex: 1;
     font-family: var(--font-mono);
@@ -631,7 +631,7 @@
     transition: all 0.15s;
     letter-spacing: 0.04em;
   }
-  .set-hours-btn:hover { background: #6b3410; }
+  .set-hours-btn:hover { background: #1244a0; }
 
   /* Adjust row */
   .adjust-row {
@@ -674,6 +674,37 @@
     transition: all 0.15s;
   }
   .popover-close:hover { background: var(--bg); color: var(--text); }
+
+
+  /* ── AI Description cell ── */
+  .ai-desc-cell {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+  .ai-desc-output {
+    font-style: italic;
+    color: #1a4a8a !important;
+    background: #f0f5ff !important;
+    border-color: #b8cff0 !important;
+  }
+  .ai-desc-output:focus {
+    border-color: #4a7fc1 !important;
+    box-shadow: 0 0 0 2px rgba(74,127,193,0.15) !important;
+  }
+  .ai-status {
+    font-family: var(--font-mono);
+    font-size: 0.6rem;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    height: 12px;
+    padding-left: 2px;
+    transition: opacity 0.2s;
+  }
+  .ai-status.thinking { color: var(--accent); }
+  .ai-status.done { color: var(--active-border); }
+  .ai-status.error { color: #dc2626; }
 
 </style>
 </head>
@@ -777,6 +808,7 @@
   <span class="col-label">Billable</span>
   <span class="col-label">Task Description</span>
   <span class="col-label">Billing Description</span>
+  <span class="col-label" style="display:flex;align-items:center;gap:5px;">AI Description <span style="font-size:0.6rem;background:#1a56b0;color:#fff;padding:1px 5px;border-radius:2px;letter-spacing:0.04em;">AI</span></span>
   <span class="col-label"></span>
 </div>
 
@@ -922,6 +954,16 @@ function render() {
         data-timer-id="${t.id}"
         data-field="billDesc"
       >${escHtml(t.billDesc || '')}</textarea>
+      <div class="ai-desc-cell" data-timer-id="${t.id}">
+        <textarea
+          class="timer-input ai-desc-output"
+          placeholder="AI billing entry will appear here…"
+          data-timer-id="${t.id}"
+          data-field="aiDesc"
+          style="font-style:italic;color:#1a4a8a;background:#f0f5ff;border-color:#b8cff0;"
+        >${escHtml(t.aiDesc || '')}</textarea>
+        <div class="ai-status" data-timer-id="${t.id}"></div>
+      </div>
       <button class="delete-btn" data-id="${t.id}" title="Delete timer">✕</button>
     `;
     list.appendChild(row);
@@ -1032,7 +1074,7 @@ function toggleTimer(id) {
 
 function addTimer() {
   const day = getDayData(currentDate);
-  day.timers.push({ id: nextId(), elapsed: 0, taskDesc: '', billDesc: '', runningStart: null });
+  day.timers.push({ id: nextId(), elapsed: 0, taskDesc: '', billDesc: '', aiDesc: '', runningStart: null });
   save();
   render();
 }
@@ -1143,8 +1185,13 @@ document.getElementById('timer-list').addEventListener('input', e => {
   const day = getDayData(currentDate);
   const t = day.timers.find(x => x.id === el.dataset.timerId);
   if (!t) return;
+  // Don't let manual edits to aiDesc textarea overwrite saved data unintentionally
   t[el.dataset.field] = el.value;
   save();
+  // Trigger AI generation when billing description changes
+  if (el.dataset.field === 'billDesc') {
+    scheduleAiGeneration(el.dataset.timerId, el.value);
+  }
 });
 
 document.getElementById('add-timer-btn').addEventListener('click', addTimer);
@@ -1261,6 +1308,91 @@ function openImportModal() {
 function closeImportModal() {
   document.getElementById('import-modal').classList.remove('open');
 }
+
+
+// ── AI Billing Description ────────────────────────────────────
+const aiDebounceTimers = {};
+const AI_SYSTEM_PROMPT = `You are an expert legal billing specialist. Convert the user's informal billing description into a proper legal billing entry following these strict rules:
+
+1. All verbs must be present tense (e.g., "Reviewed" → "Review", "Drafted" → "Draft", "Called" → "Call").
+2. Each sentence ends with a period.
+3. Capitalize the first letter of each sentence.
+4. Phone calls are described as "Telecommunication conference with [participants]".
+5. Zoom, Webex, Teams, or any video calls are described as "Video conference with [participants]".
+6. If a client appears in a phone or video call, always list the client first among participants.
+7. List ALL participants in phone and video conferences.
+8. Reading and reviewing documents should be phrased as "Review and analyze [document name/type]".
+9. Use standard legal billing conventions: be specific, concise, and professional.
+10. Do not add information not present in the input. Do not editorialize.
+11. Return ONLY the formatted billing entry text — no explanation, no quotes, no preamble.`;
+
+async function generateAiDesc(timerId, billDescText) {
+  if (!billDescText || !billDescText.trim()) {
+    // Clear AI field and status if billing desc is empty
+    updateAiField(timerId, '', '');
+    const day = getDayData(currentDate);
+    const t = day.timers.find(x => x.id === timerId);
+    if (t) { t.aiDesc = ''; save(); }
+    return;
+  }
+
+  setAiStatus(timerId, 'thinking', '⟳ generating…');
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: AI_SYSTEM_PROMPT,
+        messages: [{ role: 'user', content: billDescText.trim() }]
+      })
+    });
+
+    if (!response.ok) throw new Error('API error ' + response.status);
+    const data = await response.json();
+    const result = data.content.map(b => b.text || '').join('').trim();
+
+    updateAiField(timerId, result, 'done');
+    setAiStatus(timerId, 'done', '✓ done');
+    setTimeout(() => setAiStatus(timerId, '', ''), 2500);
+
+    // Persist to data
+    const day = getDayData(currentDate);
+    const t = day.timers.find(x => x.id === timerId);
+    if (t) { t.aiDesc = result; save(); }
+
+  } catch (err) {
+    setAiStatus(timerId, 'error', '✗ error');
+    console.error('AI billing error:', err);
+  }
+}
+
+function updateAiField(timerId, text, statusType) {
+  const textarea = document.querySelector(`.ai-desc-output[data-timer-id="${timerId}"]`);
+  if (textarea) textarea.value = text;
+}
+
+function setAiStatus(timerId, type, msg) {
+  const el = document.querySelector(`.ai-status[data-timer-id="${timerId}"]`);
+  if (!el) return;
+  el.textContent = msg;
+  el.className = 'ai-status' + (type ? ' ' + type : '');
+}
+
+function scheduleAiGeneration(timerId, billDescText) {
+  if (aiDebounceTimers[timerId]) clearTimeout(aiDebounceTimers[timerId]);
+  if (!billDescText || !billDescText.trim()) {
+    generateAiDesc(timerId, '');
+    return;
+  }
+  setAiStatus(timerId, 'thinking', '⟳ waiting…');
+  aiDebounceTimers[timerId] = setTimeout(() => {
+    generateAiDesc(timerId, billDescText);
+  }, 900);
+}
+
 
 // ── Toast ─────────────────────────────────────────────────────
 let toastTimer = null;
